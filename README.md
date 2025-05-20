@@ -1,7 +1,5 @@
 # Go Windows Service
 
-## Overview
-
 A simple Windows service that, every 2 or 5 seconds, sends a message to a MQTT broker.
 
 ## Building and Running
