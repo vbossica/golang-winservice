@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"time"
 
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/debug"
@@ -20,14 +19,15 @@ type WindowsService struct{}
 func (m *WindowsService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
-	fasttick := time.Tick(2 * time.Second)
-	slowtick := time.Tick(5 * time.Second)
-	tick := fasttick
+
+	// Initialize the TickManager
+	tickManager := core.NewTickManager()
+
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 loop:
 	for {
 		select {
-		case <-tick:
+		case <-tickManager.CurrentTick:
 			eventLog.Info(1, "Tick processed successfully")
 		case c := <-r:
 			switch c.Cmd {
@@ -37,10 +37,10 @@ loop:
 				break loop
 			case svc.Pause:
 				changes <- svc.Status{State: svc.Paused, Accepts: cmdsAccepted}
-				tick = slowtick
+				tickManager.UseSlowTick()
 			case svc.Continue:
 				changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
-				tick = fasttick
+				tickManager.UseFastTick()
 			default:
 				eventLog.Error(1, fmt.Sprintf("unexpected control request #%d", c))
 			}
