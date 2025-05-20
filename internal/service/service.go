@@ -1,10 +1,4 @@
-// Copyright 2012 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-//go:build windows
-
-package main
+package service
 
 import (
 	"fmt"
@@ -15,11 +9,15 @@ import (
 	"golang.org/x/sys/windows/svc/eventlog"
 )
 
+const (
+	ServiceName = "golang-winservice"
+)
+
 var eventLog debug.Log
 
-type exampleService struct{}
+type WindowsService struct{}
 
-func (m *exampleService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
+func (m *WindowsService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
 	fasttick := time.Tick(2 * time.Second)
@@ -30,7 +28,7 @@ loop:
 	for {
 		select {
 		case <-tick:
-			eventLog.Info(1, "Tick processed")
+			eventLog.Info(1, "Tick processed successfully")
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:
@@ -52,27 +50,27 @@ loop:
 	return
 }
 
-func RunService(name string, isDebug bool) {
+func RunService(isDebug bool) {
 	var err error
 	if isDebug {
-		eventLog = debug.New(name)
+		eventLog = debug.New(ServiceName)
 	} else {
-		eventLog, err = eventlog.Open(name)
+		eventLog, err = eventlog.Open(ServiceName)
 		if err != nil {
 			return
 		}
 	}
 	defer eventLog.Close()
 
-	eventLog.Info(1, fmt.Sprintf("starting %s service", name))
+	eventLog.Info(1, fmt.Sprintf("starting %s service", ServiceName))
 	run := svc.Run
 	if isDebug {
 		run = debug.Run
 	}
-	err = run(name, &exampleService{})
+	err = run(ServiceName, &WindowsService{})
 	if err != nil {
-		eventLog.Error(1, fmt.Sprintf("%s service failed: %v", name, err))
+		eventLog.Error(1, fmt.Sprintf("%s service failed: %v", ServiceName, err))
 		return
 	}
-	eventLog.Info(1, fmt.Sprintf("%s service stopped", name))
+	eventLog.Info(1, fmt.Sprintf("%s service stopped", ServiceName))
 }

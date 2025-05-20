@@ -1,4 +1,4 @@
-module golang-winservice2
+module golang-winservice
 
 go 1.24
 
