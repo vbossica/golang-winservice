@@ -1,0 +1,14 @@
+{
+    "vsmqtt.brokerProfiles": [
+        {
+            "name": "moquitto",
+            "host": "127.0.0.1",
+            "port": 1883,
+            "clientId": "vsmqtt_client_7e30"
+        }
+    ],
+    "cSpell.words": [
+        "mqtt",
+        "winservice", "ssec"
+    ]
+}

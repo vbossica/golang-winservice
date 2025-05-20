@@ -6,19 +6,35 @@ import (
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/debug"
 	"golang.org/x/sys/windows/svc/eventlog"
+
+	"golang-winservice/internal/core"
 )
 
 const (
-	ServiceName = "golang-winservice"
+	ServiceName  = "golang-winservice"
+	MQTTBroker   = "tcp://localhost:1883" // Default local MQTT broker
+	MQTTClientID = "windows-service-client"
+	MQTTTopic    = "service/status"
 )
 
 var eventLog debug.Log
 
-type WindowsService struct{}
+type WindowsService struct {
+	mqttClient *core.MQTTClient
+}
 
 func (m *WindowsService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (ssec bool, errno uint32) {
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
+
+	// Initialize the MQTT client
+	m.mqttClient = core.NewMQTTClient(MQTTClientID, MQTTBroker, MQTTTopic)
+	err := m.mqttClient.Connect()
+	if err != nil {
+		eventLog.Error(1, fmt.Sprintf("Failed to connect to MQTT broker: %v", err))
+	} else {
+		eventLog.Info(1, "Successfully connected to MQTT broker")
+	}
 
 	// Initialize the TickManager
 	tickManager := core.NewTickManager()
@@ -29,6 +45,21 @@ loop:
 		select {
 		case <-tickManager.CurrentTick:
 			eventLog.Info(1, "Tick processed successfully")
+			if m.mqttClient.IsConnected() {
+				err := m.mqttClient.SendStatusUpdate()
+				if err != nil {
+					eventLog.Error(1, fmt.Sprintf("Failed to send MQTT message: %v", err))
+				} else {
+					eventLog.Info(1, "MQTT status message sent successfully")
+				}
+			} else {
+				eventLog.Warning(1, "MQTT client not connected, attempting reconnect")
+				// Try to reconnect
+				err := m.mqttClient.Connect()
+				if err != nil {
+					eventLog.Error(1, fmt.Sprintf("MQTT reconnect failed: %v", err))
+				}
+			}
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:
