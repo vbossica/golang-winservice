@@ -8,7 +8,9 @@
         }
     ],
     "cSpell.words": [
+        "displayname",
         "mqtt",
-        "winservice", "ssec"
+        "ssec",
+        "winservice"
     ]
 }

@@ -11,10 +11,7 @@ import (
 )
 
 const (
-	ServiceName  = "golang-winservice"
-	MQTTBroker   = "tcp://localhost:1883" // Default local MQTT broker
-	MQTTClientID = "windows-service-client"
-	MQTTTopic    = "service/status"
+	ServiceName = "golang-winservice"
 )
 
 var eventLog debug.Log
@@ -27,8 +24,15 @@ func (m *WindowsService) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
 
+	// configuration values that should be read from a configuration file
+	fastTickValue := 2
+	slowTickValue := 5
+	mqttBroker := "tcp://localhost:1883"
+	mqttTopic := "service/status"
+	mqttClientId := ServiceName + "-client"
+
 	// Initialize the MQTT client
-	m.mqttClient = core.NewMQTTClient(MQTTClientID, MQTTBroker, MQTTTopic)
+	m.mqttClient = core.NewMQTTClient(mqttClientId, mqttBroker, mqttTopic)
 	err := m.mqttClient.Connect()
 	if err != nil {
 		eventLog.Error(1, fmt.Sprintf("Failed to connect to MQTT broker: %v", err))
@@ -37,7 +41,7 @@ func (m *WindowsService) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	}
 
 	// Initialize the TickManager
-	tickManager := core.NewTickManager()
+	tickManager := core.NewTickManager(fastTickValue, slowTickValue)
 
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 loop:
