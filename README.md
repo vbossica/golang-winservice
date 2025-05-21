@@ -13,13 +13,16 @@ A simple Windows service that, every 2 or 5 seconds, sends a message to a MQTT b
 1. Register the service (as administrator):
 
     ```Powershell
-    sc.exe create golang-winservice \
-        binPath="$((Get-Location).Path)\golang-winservice.exe"
-    sc.exe description golang-winservice \
+    sc.exe create golang-winservice `
+        displayname= "Golang Sample Windows Service" `
+        binPath= "$((Get-Location).Path)\golang-winservice.exe"
+    sc.exe description golang-winservice `
         "Simple windows service sending messages to a MQTT broker."
     ```
 
 1. Use the Windows Service Control Manager to start the service.
+
+    <img src="./.graphics/services-registry.png" alt="Services registry" width="500" height="300">
 
 1. Deregister the service (as administrator):
 
