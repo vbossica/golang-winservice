@@ -7,6 +7,8 @@ import (
 	"golang.org/x/sys/windows/svc/debug"
 	"golang.org/x/sys/windows/svc/eventlog"
 
+	"github.com/spf13/viper"
+
 	"golang-winservice/internal/core"
 )
 
@@ -24,24 +26,29 @@ func (m *WindowsService) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
 
-	// configuration values that should be read from a configuration file
-	fastTickValue := 2
-	slowTickValue := 5
-	mqttBroker := "tcp://localhost:1883"
-	mqttTopic := "service/status"
-	mqttClientId := ServiceName + "-client"
+	// read the values from a configuration file
+	// viper.SetConfigName("config.yml")
+	// viper.AddConfigPath(fmt.Sprintf("C:/ProgramData/%s/", ServiceName))
+	viper.SetConfigFile(fmt.Sprintf("C:/ProgramData/%s/config.yml", ServiceName))
+
+	// Read the configuration
+	if err := viper.ReadInConfig(); err != nil {
+		eventLog.Error(1, fmt.Sprintf("Error reading config file: %v", err))
+		return
+	}
 
 	// Initialize the MQTT client
-	m.mqttClient = core.NewMQTTClient(mqttClientId, mqttBroker, mqttTopic)
+	m.mqttClient = core.NewMQTTClient(fmt.Sprintf("%s-client", ServiceName), viper.GetString("mqtt.broker"), viper.GetString("mqtt.topic"))
 	err := m.mqttClient.Connect()
 	if err != nil {
 		eventLog.Error(1, fmt.Sprintf("Failed to connect to MQTT broker: %v", err))
+		return
 	} else {
 		eventLog.Info(1, "Successfully connected to MQTT broker")
 	}
 
 	// Initialize the TickManager
-	tickManager := core.NewTickManager(fastTickValue, slowTickValue)
+	tickManager := core.NewTickManager(viper.GetInt("intervals.fast"), viper.GetInt("intervals.slow"))
 
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 loop:
