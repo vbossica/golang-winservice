@@ -26,12 +26,8 @@ func (m *WindowsService) Execute(args []string, r <-chan svc.ChangeRequest, chan
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown | svc.AcceptPauseAndContinue
 	changes <- svc.Status{State: svc.StartPending}
 
-	// read the values from a configuration file
-	// viper.SetConfigName("config.yml")
-	// viper.AddConfigPath(fmt.Sprintf("C:/ProgramData/%s/", ServiceName))
+	// Read the values from a configuration file
 	viper.SetConfigFile(fmt.Sprintf("C:/ProgramData/%s/config.yml", ServiceName))
-
-	// Read the configuration
 	if err := viper.ReadInConfig(); err != nil {
 		eventLog.Error(1, fmt.Sprintf("Error reading config file: %v", err))
 		return
