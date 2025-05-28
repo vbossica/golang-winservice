@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/sys/windows/svc"
 
-	"golang-winservice/internal/service"
+	"github.com/vbossica/golang-winservice/internal/service"
 )
 
 func main() {

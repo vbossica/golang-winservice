@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"golang-winservice/internal/core"
+	"github.com/vbossica/golang-winservice/internal/core"
 )
 
 const (

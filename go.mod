@@ -1,4 +1,4 @@
-module golang-winservice
+module github.com/vbossica/golang-winservice
 
 go 1.24
 
