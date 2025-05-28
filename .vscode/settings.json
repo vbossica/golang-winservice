@@ -8,9 +8,26 @@
         }
     ],
     "cSpell.words": [
+        "afero",
+        "devcontainers",
         "displayname",
+        "fsnotify",
+        "GOARCH",
+        "gopath",
+        "gopkg",
+        "goroot",
+        "gotenv",
+        "locafero",
+        "mapstructure",
         "mqtt",
+        "multierr",
+        "paho",
+        "pflag",
+        "sagikazarmark",
+        "sourcegraph",
         "ssec",
+        "subosito",
+        "vbossica",
         "winservice"
     ]
 }
