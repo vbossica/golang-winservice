@@ -1,0 +1,21 @@
+{
+    "name": "Golang",
+    "image": "mcr.microsoft.com/devcontainers/go:latest",
+    "features": {
+        "golang": "latest"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "go.gopath": "/go",
+                "go.goroot": "/usr/local/go"
+            },
+            "extensions": [
+                "golang.go",
+                "ms-vscode.go",
+                "ms-vscode.makefile-tools"
+            ]
+        }
+    },
+    "postCreateCommand": "go version"
+}
