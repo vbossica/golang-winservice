@@ -6,8 +6,8 @@ A simple Windows service that, every 2 or 5 seconds, sends a message to a MQTT b
 
 1. Build the application for Windows:
 
-    ```Powershell
-    go build -o golang-winservice.exe .\cmd\service
+    ```bash
+    make build
     ```
 
 1. Register the service (as administrator):
